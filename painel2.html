@@ -1,0 +1,215 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel com Modal</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      margin: 0;
+      padding: 20px;
+    }
+    .login-box, .painel-box {
+      max-width: 700px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .painel-box { display: none; }
+    h1 {
+      color: #833ab4;
+      text-align: center;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      background: #833ab4;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #6a2c93;
+    }
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+    }
+    th {
+      background-color: #fcb045;
+      color: white;
+    }
+    .delete-btn {
+      background: #fd1d1d;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    .edit-btn {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      margin-right: 5px;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 400px;
+      width: 100%;
+    }
+    .modal input {
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box" id="loginBox">
+    <h1>Login do Thiago</h1>
+    <input type="text" id="user" placeholder="Usuário">
+    <input type="password" id="pass" placeholder="Senha">
+    <button onclick="acessarPainel()">Entrar</button>
+  </div>
+
+  <div class="painel-box" id="painelBox">
+    <h1>Usuários Cadastrados</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Email</th>
+          <th>Telefone</th>
+          <th>Instagram</th>
+          <th>Usuário</th>
+          <th>Moedas</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaUsuarios"></tbody>
+    </table>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal" id="editModal">
+    <div class="modal-content">
+      <h2>Editar Usuário</h2>
+      <input type="text" id="editNome" placeholder="Nome">
+      <input type="text" id="editEmail" placeholder="Email">
+      <input type="text" id="editTelefone" placeholder="Telefone">
+      <input type="text" id="editInsta" placeholder="Instagram">
+      <input type="text" id="editUsuario" placeholder="Usuário">
+      <input type="number" id="editMoedas" placeholder="Moedas">
+      <button onclick="salvarEdicao()">Salvar</button>
+      <button onclick="fecharModal()">Cancelar</button>
+    </div>
+  </div>
+
+  <script>
+    let indiceEditando = null;
+
+    function acessarPainel() {
+      const u = document.getElementById('user').value;
+      const p = document.getElementById('pass').value;
+      if (u === 'thiago' && p === '1991') {
+        document.getElementById('loginBox').style.display = 'none';
+        document.getElementById('painelBox').style.display = 'block';
+        carregarUsuarios();
+      } else {
+        alert('Usuário ou senha incorretos.');
+      }
+    }
+
+    function carregarUsuarios() {
+      const lista = JSON.parse(localStorage.getItem('usuarios')) || [];
+      const corpo = document.getElementById('tabelaUsuarios');
+      corpo.innerHTML = '';
+      lista.forEach((user, i) => {
+        const linha = document.createElement('tr');
+        linha.innerHTML = `
+          <td>${user.nome}</td>
+          <td>${user.email}</td>
+          <td>${user.telefone}</td>
+          <td>${user.insta}</td>
+          <td>${user.usuario}</td>
+          <td>${user.moedas || 0}</td>
+          <td>
+            <button class="edit-btn" onclick="abrirModal(${i})">Editar</button>
+            <button class="delete-btn" onclick="excluir(${i})">Excluir</button>
+          </td>
+        `;
+        corpo.appendChild(linha);
+      });
+    }
+
+    function abrirModal(indice) {
+      const lista = JSON.parse(localStorage.getItem('usuarios')) || [];
+      const user = lista[indice];
+      indiceEditando = indice;
+      document.getElementById('editNome').value = user.nome;
+      document.getElementById('editEmail').value = user.email;
+      document.getElementById('editTelefone').value = user.telefone;
+      document.getElementById('editInsta').value = user.insta;
+      document.getElementById('editUsuario').value = user.usuario;
+      document.getElementById('editMoedas').value = user.moedas || 0;
+      document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function salvarEdicao() {
+      const lista = JSON.parse(localStorage.getItem('usuarios')) || [];
+      const user = lista[indiceEditando];
+      user.nome = document.getElementById('editNome').value;
+      user.email = document.getElementById('editEmail').value;
+      user.telefone = document.getElementById('editTelefone').value;
+      user.insta = document.getElementById('editInsta').value;
+      user.usuario = document.getElementById('editUsuario').value;
+      user.moedas = parseInt(document.getElementById('editMoedas').value);
+      localStorage.setItem('usuarios', JSON.stringify(lista));
+      fecharModal();
+      carregarUsuarios();
+    }
+
+    function fecharModal() {
+      document.getElementById('editModal').style.display = 'none';
+      indiceEditando = null;
+    }
+
+    function excluir(indice) {
+      const lista = JSON.parse(localStorage.getItem('usuarios')) || [];
+      lista.splice(indice, 1);
+      localStorage.setItem('usuarios', JSON.stringify(lista));
+      carregarUsuarios();
+    }
+  </script>
+</body>
+</html>
